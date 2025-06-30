@@ -1,11 +1,14 @@
 import type IForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const ForkTsCheckerWebpackPlugin: typeof IForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const CopyWebpackPlugin = require("copy-webpack-plugin");
+import webpack from "webpack";
+import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 
 export const plugins = [
+  // TypeScript type checking
+  new ForkTsCheckerWebpackPlugin({
+    logger: "webpack-infrastructure",
+  }),
+
   // Copy public assets to output directory
   new CopyWebpackPlugin({
     patterns: [
@@ -13,13 +16,22 @@ export const plugins = [
         from: "public",
         to: ".",
         globOptions: {
-          ignore: ["**/index.html"], // Don't copy index.html as it's handled by HtmlWebpackPlugin
+          ignore: ["**/index.html"],
         },
       },
     ],
   }),
-  // Temporarily disabled to fix startup issues
-  // new ForkTsCheckerWebpackPlugin({
-  //   logger: "webpack-infrastructure",
-  // }),
+
+  // Provide Node.js globals for browser environment
+  new webpack.ProvidePlugin({
+    Buffer: ["buffer", "Buffer"],
+    process: "process/browser",
+  }),
+
+  // Define environment variables
+  new webpack.DefinePlugin({
+    "process.env.NODE_ENV": JSON.stringify(
+      process.env.NODE_ENV || "development"
+    ),
+  }),
 ];
