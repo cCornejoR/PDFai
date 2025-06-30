@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(rm:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 60s npm run start)",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm start)"
+    ],
+    "deny": []
+  }
+}

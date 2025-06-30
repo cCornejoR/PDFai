@@ -1,0 +1,238 @@
+/* PDF Viewer Custom Styles */
+
+.pdf-viewer-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Override react-pdf-viewer default styles to match our dark theme */
+.rpv-core__viewer {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.rpv-default-layout__container {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.rpv-default-layout__main {
+  background-color: transparent !important;
+}
+
+.rpv-core__page-layer {
+  background-color: white !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  margin: 8px !important;
+}
+
+.rpv-toolbar {
+  background-color: rgba(30, 30, 46, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(108, 117, 125, 0.2) !important;
+  border-radius: 12px !important;
+  margin: 8px !important;
+}
+
+.rpv-toolbar__item {
+  color: #f5f5f5 !important;
+}
+
+.rpv-toolbar__item:hover {
+  background-color: rgba(108, 117, 125, 0.2) !important;
+  color: #ff6b6b !important;
+}
+
+.rpv-sidebar {
+  background-color: rgba(30, 30, 46, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(108, 117, 125, 0.2) !important;
+}
+
+.rpv-sidebar__tab {
+  color: #6c757d !important;
+}
+
+.rpv-sidebar__tab--selected {
+  color: #ff6b6b !important;
+  background-color: rgba(255, 107, 107, 0.1) !important;
+}
+
+.rpv-sidebar__content {
+  background-color: transparent !important;
+}
+
+/* Thumbnail styles */
+.rpv-thumbnail__container {
+  background-color: rgba(30, 30, 46, 0.5) !important;
+  border: 1px solid rgba(108, 117, 125, 0.2) !important;
+  border-radius: 8px !important;
+}
+
+.rpv-thumbnail__container:hover {
+  border-color: #ff6b6b !important;
+}
+
+.rpv-thumbnail__container--selected {
+  border-color: #ff6b6b !important;
+  background-color: rgba(255, 107, 107, 0.1) !important;
+}
+
+/* Search styles */
+.rpv-search__input {
+  background-color: rgba(30, 30, 46, 0.8) !important;
+  border: 1px solid rgba(108, 117, 125, 0.3) !important;
+  border-radius: 8px !important;
+  color: #f5f5f5 !important;
+  padding: 8px 12px !important;
+}
+
+.rpv-search__input:focus {
+  border-color: #ff6b6b !important;
+  outline: none !important;
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2) !important;
+}
+
+.rpv-search__input::placeholder {
+  color: #6c757d !important;
+}
+
+/* Zoom controls */
+.rpv-zoom__popover {
+  background-color: rgba(30, 30, 46, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(108, 117, 125, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.rpv-zoom__popover-body {
+  color: #f5f5f5 !important;
+}
+
+/* Page navigation */
+.rpv-page-navigation__current-page-input {
+  background-color: rgba(30, 30, 46, 0.8) !important;
+  border: 1px solid rgba(108, 117, 125, 0.3) !important;
+  border-radius: 6px !important;
+  color: #f5f5f5 !important;
+  text-align: center !important;
+}
+
+.rpv-page-navigation__current-page-input:focus {
+  border-color: #ff6b6b !important;
+  outline: none !important;
+}
+
+/* Scrollbar styling for PDF viewer */
+.rpv-core__viewer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.rpv-core__viewer::-webkit-scrollbar-track {
+  background: rgba(30, 30, 46, 0.3);
+  border-radius: 4px;
+}
+
+.rpv-core__viewer::-webkit-scrollbar-thumb {
+  background: rgba(108, 117, 125, 0.5);
+  border-radius: 4px;
+}
+
+.rpv-core__viewer::-webkit-scrollbar-thumb:hover {
+  background: rgba(108, 117, 125, 0.7);
+}
+
+/* Loading spinner */
+.rpv-core__spinner {
+  border-color: rgba(255, 107, 107, 0.2) !important;
+  border-top-color: #ff6b6b !important;
+}
+
+/* Context menu */
+.rpv-core__popover {
+  background-color: rgba(30, 30, 46, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(108, 117, 125, 0.2) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.rpv-core__popover-body {
+  color: #f5f5f5 !important;
+}
+
+.rpv-core__menu-item {
+  color: #f5f5f5 !important;
+  padding: 8px 12px !important;
+}
+
+.rpv-core__menu-item:hover {
+  background-color: rgba(255, 107, 107, 0.1) !important;
+  color: #ff6b6b !important;
+}
+
+/* Text selection */
+.rpv-core__text-layer ::selection {
+  background-color: rgba(255, 107, 107, 0.3) !important;
+}
+
+/* Annotation styles */
+.rpv-core__annotation {
+  border-radius: 4px !important;
+}
+
+/* Print styles */
+@media print {
+  .rpv-toolbar,
+  .rpv-sidebar {
+    display: none !important;
+  }
+  
+  .rpv-core__page-layer {
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .rpv-toolbar {
+    margin: 4px !important;
+    border-radius: 8px !important;
+  }
+  
+  .rpv-core__page-layer {
+    margin: 4px !important;
+  }
+  
+  .rpv-sidebar {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .rpv-toolbar,
+  .rpv-sidebar,
+  .rpv-core__popover {
+    border-width: 2px !important;
+  }
+  
+  .rpv-toolbar__item:hover,
+  .rpv-core__menu-item:hover {
+    background-color: rgba(255, 107, 107, 0.2) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .rpv-core__viewer,
+  .rpv-toolbar__item,
+  .rpv-core__menu-item {
+    transition: none !important;
+  }
+}

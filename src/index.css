@@ -1,0 +1,436 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    border-color: theme("colors.gray.200");
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-macos-window-bg dark:bg-macos-window-bg-dark text-gray-900 dark:text-gray-100;
+    @apply antialiased font-system;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  #root {
+    @apply w-screen h-screen;
+  }
+}
+
+@layer components {
+  /* Glassmorphism efectos tipo macOS nativo */
+  .glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(25px) saturate(1.9);
+    -webkit-backdrop-filter: blur(25px) saturate(1.9);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+      0 1px 0 rgba(255, 255, 255, 0.8) inset,
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  }
+
+  .dark .glass {
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+      0 1px 0 rgba(255, 255, 255, 0.1) inset,
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+  }
+
+  .glass-subtle {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px) saturate(1.5);
+    -webkit-backdrop-filter: blur(12px) saturate(1.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-subtle {
+    background: rgba(50, 50, 50, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* Sidebar específico tipo macOS */
+  .sidebar-glass {
+    background: rgba(248, 248, 250, 0.8);
+    backdrop-filter: blur(30px) saturate(2);
+    -webkit-backdrop-filter: blur(30px) saturate(2);
+    border-right: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.7),
+      2px 0 20px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .dark .sidebar-glass {
+    background: rgba(25, 25, 25, 0.85);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.08),
+      2px 0 20px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+
+  /* Botones tipo macOS */
+  .btn-macos {
+    @apply px-4 py-2 rounded-lg font-medium text-sm transition-all duration-150;
+    @apply bg-white/80 hover:bg-white dark:bg-gray-800/80 dark:hover:bg-gray-800;
+    @apply border border-gray-200/80 dark:border-gray-700/80;
+    @apply shadow-sm hover:shadow-md hover:scale-[1.02];
+    @apply active:scale-95;
+  }
+
+  .btn-primary {
+    @apply btn-macos bg-macos-blue hover:bg-macos-blue/90 text-white border-transparent;
+    @apply shadow-lg shadow-macos-blue/25 hover:shadow-xl hover:shadow-macos-blue/30;
+  }
+
+  .btn-secondary {
+    @apply btn-macos bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700;
+    @apply hover:scale-[1.02] hover:shadow-md;
+  }
+
+  /* Inputs tipo macOS */
+  .input-macos {
+    @apply w-full px-3 py-2 bg-white/80 dark:bg-gray-800/80 border border-gray-200/80 dark:border-gray-700/80;
+    @apply rounded-lg text-sm placeholder-gray-500 dark:placeholder-gray-400;
+    @apply focus:ring-2 focus:ring-macos-blue/50 focus:border-macos-blue;
+    @apply transition-all duration-200;
+  }
+
+  /* Chat bubbles */
+  .chat-bubble {
+    @apply max-w-xs lg:max-w-md px-4 py-2 rounded-2xl text-sm leading-relaxed;
+    @apply shadow-sm;
+  }
+
+  .chat-bubble-user {
+    @apply chat-bubble bg-macos-blue text-white ml-auto;
+    @apply rounded-br-md;
+  }
+
+  .chat-bubble-assistant {
+    @apply chat-bubble bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700;
+    @apply rounded-bl-md;
+  }
+
+  /* Efectos de hover suaves */
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg;
+  }
+
+  /* Scrollbar personalizado */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.7);
+  }
+}
+
+@layer utilities {
+  /* Animaciones personalizadas */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-bounce-gentle {
+    animation: bounceGentle 0.6s ease-out;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  /* Utilidades de drag */
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+}
+
+/* Keyframes */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes bounceGentle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Estilos para react-pdf */
+.react-pdf__Page {
+  @apply shadow-lg rounded-lg overflow-hidden;
+}
+
+.react-pdf__Page__canvas {
+  @apply max-w-full h-auto;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  @apply inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin;
+}
+
+/* Animación blob para el fondo */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Nuevas animaciones suaves */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px -10px currentColor;
+  }
+  to {
+    box-shadow: 0 0 30px -5px currentColor;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.1);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.1);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+/* Efectos de hover suaves para glassmorphism */
+.glass-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-hover:hover {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(30px);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dark .glass-hover:hover {
+  background: rgba(20, 20, 20, 0.9);
+}
+
+/* Smooth transitions para elementos interactivos */
+.smooth-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.smooth-hover:hover {
+  transform: translateY(-1px);
+}
+
+/* Efectos hover mejorados para dropdowns */
+.dropdown-item-hover {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dropdown-item-hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(59, 130, 246, 0.3),
+    transparent
+  );
+  transition: left 0.2s;
+}
+
+.dropdown-item-hover:hover::before {
+  left: 100%;
+}
+
+.dropdown-item-hover:hover {
+  transform: translateX(6px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.2) !important;
+  border-color: rgba(59, 130, 246, 1) !important;
+  color: white !important;
+}
+
+/* Efectos hover simples y limpios para elementos de menú */
+.menu-dropdown-item {
+  transition: all 0.2s ease;
+  position: relative;
+  border: 1px solid transparent;
+  background: transparent;
+}
+
+.menu-dropdown-item:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: #3b82f6 !important;
+  transform: translateX(4px);
+}
+
+.menu-dropdown-item:hover * {
+  color: #3b82f6 !important;
+}
+
+/* Efectos hover para botones de menú principal */
+.menu-button-hover {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.menu-button-hover:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Efectos hover para elementos de configuración */
+.config-item-hover {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.config-item-hover:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Gradiente animado para botones */
+.gradient-animated {
+  background: linear-gradient(-45deg, #ef4444, #f97316, #eab308, #ef4444);
+  background-size: 400% 400%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Shimmer effect para loading states */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.5s infinite;
+}
