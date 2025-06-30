@@ -146,6 +146,37 @@ class PDFParseService {
   }
 
   /**
+   * Parse PDF from buffer/Uint8Array directly
+   * This method is used when we have PDF data as a buffer instead of a file path
+   */
+  async parsePDFBuffer(uint8Array: Uint8Array): Promise<PDFExtractionResult> {
+    try {
+      // Extract text using PDF.js directly from buffer
+      const pdfContent = await PDFService.extractTextFromPDF(uint8Array);
+
+      const content: PDFContent = {
+        text: pdfContent.text,
+        pages: pdfContent.pageCount || 0,
+        info: pdfContent.metadata || {},
+        metadata: pdfContent.metadata || {},
+        images: [], // We'll implement image extraction separately
+      };
+
+      return {
+        success: true,
+        content,
+      };
+    } catch (error) {
+      console.error("Error parsing PDF buffer:", error);
+      return {
+        success: false,
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  }
+
+  /**
    * Prepare content for Gemini AI
    * This formats the extracted content in a way that's optimal for AI processing
    */
