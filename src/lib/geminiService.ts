@@ -1,7 +1,7 @@
-import { GoogleGenerativeAI } from '@google/genai';
-import { PDFContent } from './pdfParseService';
-import { enhancedRAGService, SearchResult } from './enhancedRAGService';
-import { embeddingService } from './embeddingService';
+import { GoogleGenAI } from "@google/genai";
+import { PDFContent } from "./pdfParseService";
+import { enhancedRAGService, SearchResult } from "./enhancedRAGService";
+import { embeddingService } from "./embeddingService";
 
 export interface GeminiResponse {
   success: boolean;
@@ -10,7 +10,7 @@ export interface GeminiResponse {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
   ragContext?: {
@@ -21,8 +21,7 @@ export interface ChatMessage {
 }
 
 class GeminiService {
-  private genAI: GoogleGenerativeAI | null = null;
-  private model: any = null;
+  private genAI: GoogleGenAI | null = null;
   private currentPDFContent: PDFContent | null = null;
   private chatHistory: ChatMessage[] = [];
   private currentDocumentId: string | null = null;
@@ -32,28 +31,20 @@ class GeminiService {
    */
   async initialize(apiKey: string): Promise<boolean> {
     try {
-      this.genAI = new GoogleGenerativeAI({ apiKey });
-      // Use Gemini 1.5 Flash for consistent performance
-      this.model = this.genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
-          maxOutputTokens: 8192,
-        },
-      });
-      
+      this.genAI = new GoogleGenAI({ apiKey });
+
       // Initialize RAG service with embeddings
       const ragInitialized = await enhancedRAGService.initialize(apiKey);
       if (!ragInitialized) {
-        console.warn('⚠️ RAG service initialization failed, falling back to simple context');
+        console.warn(
+          "⚠️ RAG service initialization failed, falling back to simple context"
+        );
       }
-      
-      console.log('✅ Gemini service initialized with enhanced RAG');
+
+      console.log("✅ Gemini service initialized with enhanced RAG");
       return true;
     } catch (error) {
-      console.error('Error initializing Gemini:', error);
+      console.error("Error initializing Gemini:", error);
       return false;
     }
   }
@@ -62,7 +53,7 @@ class GeminiService {
    * Check if Gemini is initialized
    */
   isInitialized(): boolean {
-    return this.genAI !== null && this.model !== null;
+    return this.genAI !== null;
   }
 
   /**
@@ -71,7 +62,7 @@ class GeminiService {
   async setPDFContent(content: PDFContent, documentId?: string): Promise<void> {
     this.currentPDFContent = content;
     this.currentDocumentId = documentId || null;
-    
+
     // Note: For enhanced RAG, documents should be processed through enhancedRAGService.processDocument()
     // This method is kept for backwards compatibility with existing PDF viewer integration
   }
@@ -98,69 +89,88 @@ class GeminiService {
     if (!this.isInitialized()) {
       return {
         success: false,
-        error: 'Gemini AI is not initialized. Please set your API key first.'
+        error: "Gemini AI is not initialized. Please set your API key first.",
       };
     }
 
     try {
       let prompt = message;
-      let ragContext: ChatMessage['ragContext'] | undefined;
+      let ragContext: ChatMessage["ragContext"] | undefined;
 
       // Try enhanced RAG first if available
       if (enhancedRAGService.isReady()) {
-        const searchOptions = this.currentDocumentId 
-          ? { documentId: this.currentDocumentId, maxResults: 3, minSimilarity: 0.7 }
+        const searchOptions = this.currentDocumentId
+          ? {
+              documentId: this.currentDocumentId,
+              maxResults: 3,
+              minSimilarity: 0.7,
+            }
           : { maxResults: 5, minSimilarity: 0.7 };
-        
-        const ragResult = await enhancedRAGService.searchSimilarChunks(message, searchOptions);
-        
+
+        const ragResult = await enhancedRAGService.searchSimilarChunks(
+          message,
+          searchOptions
+        );
+
         if (ragResult.success && ragResult.results.length > 0) {
           prompt = this.buildEnhancedRAGPrompt(message, ragResult.results);
           ragContext = {
             query: message,
             results: ragResult.results,
-            searchTime: ragResult.searchTime
+            searchTime: ragResult.searchTime,
           };
-          console.log(`🔍 Used enhanced RAG: ${ragResult.results.length} relevant chunks found`);
+          console.log(
+            `🔍 Used enhanced RAG: ${ragResult.results.length} relevant chunks found`
+          );
         } else if (this.currentPDFContent) {
           // Fallback to simple context
           prompt = this.buildContextPrompt(message);
-          console.log('📄 Using fallback context (enhanced RAG found no results)');
+          console.log(
+            "📄 Using fallback context (enhanced RAG found no results)"
+          );
         }
       } else if (this.currentPDFContent) {
         // Fallback to simple context if RAG not available
         prompt = this.buildContextPrompt(message);
-        console.log('📄 Using simple context (enhanced RAG not available)');
+        console.log("📄 Using simple context (enhanced RAG not available)");
       }
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const result = await this.genAI!.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: prompt,
+        config: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 8192,
+        },
+      });
+      const text = result.text || "No response generated";
 
       // Add to chat history with RAG context
       this.chatHistory.push({
-        role: 'user',
+        role: "user",
         content: message,
         timestamp: new Date(),
-        ragContext
+        ragContext,
       });
 
       this.chatHistory.push({
-        role: 'assistant',
+        role: "assistant",
         content: text,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       return {
         success: true,
-        response: text
+        response: text,
       };
-
     } catch (error) {
-      console.error('Error sending message to Gemini:', error);
+      console.error("Error sending message to Gemini:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -172,7 +182,7 @@ class GeminiService {
     if (!this.isInitialized()) {
       return {
         success: false,
-        error: 'Gemini AI is not initialized. Please set your API key first.'
+        error: "Gemini AI is not initialized. Please set your API key first.",
       };
     }
 
@@ -182,9 +192,9 @@ Please analyze this PDF document and provide a comprehensive summary:
 
 DOCUMENT METADATA:
 - Pages: ${content.pages}
-- Title: ${content.info?.Title || 'Unknown'}
-- Author: ${content.info?.Author || 'Unknown'}
-- Subject: ${content.info?.Subject || 'Unknown'}
+- Title: ${content.info?.Title || "Unknown"}
+- Author: ${content.info?.Author || "Unknown"}
+- Subject: ${content.info?.Subject || "Unknown"}
 - Text Length: ${content.text.length} characters
 
 DOCUMENT CONTENT:
@@ -200,20 +210,22 @@ Please provide:
 Format your response in a clear, organized manner.
 `;
 
-      const result = await this.model.generateContent(analysisPrompt);
-      const response = await result.response;
-      const text = response.text();
+      const result = await this.genAI!.models.generateContent({
+        model: "gemini-1.5-flash",
+        contents: analysisPrompt,
+      });
+      const text = result.text || "No analysis generated";
 
       return {
         success: true,
-        response: text
+        response: text,
       };
-
     } catch (error) {
-      console.error('Error analyzing PDF:', error);
+      console.error("Error analyzing PDF:", error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
       };
     }
   }
@@ -244,18 +256,25 @@ Format the response as a structured list.
   /**
    * Build enhanced RAG prompt with semantic search results
    */
-  private buildEnhancedRAGPrompt(userMessage: string, searchResults: SearchResult[]): string {
+  private buildEnhancedRAGPrompt(
+    userMessage: string,
+    searchResults: SearchResult[]
+  ): string {
     const contextString = enhancedRAGService.getContextString(searchResults);
-    
-    const documentTypes = [...new Set(searchResults.map(r => r.chunk.metadata.documentType))];
-    const documentNames = [...new Set(searchResults.map(r => r.chunk.metadata.filename))];
-    
+
+    const documentTypes = [
+      ...new Set(searchResults.map((r) => r.chunk.metadata.documentType)),
+    ];
+    const documentNames = [
+      ...new Set(searchResults.map((r) => r.chunk.metadata.filename)),
+    ];
+
     const context = `
 You are an AI assistant helping to analyze and discuss documents. Here are the most relevant sections found using semantic search:
 
 SOURCE DOCUMENTS:
-- Files: ${documentNames.join(', ')}
-- Types: ${documentTypes.map(t => t.toUpperCase()).join(', ')}
+- Files: ${documentNames.join(", ")}
+- Types: ${documentTypes.map((t) => t.toUpperCase()).join(", ")}
 - Relevance: Based on semantic similarity to your question
 
 RELEVANT CONTENT:
@@ -280,18 +299,19 @@ Please answer the user's question based on the relevant content above. The conte
     }
 
     // Use only first 4000 characters to avoid token limits
-    const truncatedText = this.currentPDFContent.text.length > 4000 
-      ? this.currentPDFContent.text.substring(0, 4000) + '...'
-      : this.currentPDFContent.text;
+    const truncatedText =
+      this.currentPDFContent.text.length > 4000
+        ? this.currentPDFContent.text.substring(0, 4000) + "..."
+        : this.currentPDFContent.text;
 
     const context = `
 You are an AI assistant helping to analyze and discuss a PDF document. Here is the document information:
 
 DOCUMENT METADATA:
-- Title: ${this.currentPDFContent.info?.Title || 'Unknown'}
-- Author: ${this.currentPDFContent.info?.Author || 'Unknown'}
+- Title: ${this.currentPDFContent.info?.Title || "Unknown"}
+- Author: ${this.currentPDFContent.info?.Author || "Unknown"}
 - Pages: ${this.currentPDFContent.pages}
-- Subject: ${this.currentPDFContent.info?.Subject || 'Unknown'}
+- Subject: ${this.currentPDFContent.info?.Subject || "Unknown"}
 
 DOCUMENT CONTENT:
 ${truncatedText}
@@ -323,31 +343,36 @@ Please answer the user's question based on the document content above. If the qu
   /**
    * Process and index a document for enhanced RAG
    */
-  async processDocumentForRAG(file: File): Promise<{ success: boolean; documentId?: string; error?: string }> {
+  async processDocumentForRAG(
+    file: File
+  ): Promise<{ success: boolean; documentId?: string; error?: string }> {
     try {
       if (!enhancedRAGService.isReady()) {
         return {
           success: false,
-          error: 'Enhanced RAG service not initialized. Please configure API key first.'
+          error:
+            "Enhanced RAG service not initialized. Please configure API key first.",
         };
       }
 
       const result = await enhancedRAGService.processDocument(file);
-      
+
       if (result.success) {
         this.currentDocumentId = result.documentId;
-        console.log(`✅ Document indexed for RAG: ${result.chunksCreated} chunks created`);
+        console.log(
+          `✅ Document indexed for RAG: ${result.chunksCreated} chunks created`
+        );
       }
-      
+
       return {
         success: result.success,
         documentId: result.documentId,
-        error: result.error
+        error: result.error,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }
@@ -376,7 +401,7 @@ Please answer the user's question based on the document content above. If the qu
     if (!this.currentPDFContent) {
       return {
         success: false,
-        error: 'No PDF document is currently loaded.'
+        error: "No PDF document is currently loaded.",
       };
     }
 

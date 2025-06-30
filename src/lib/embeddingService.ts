@@ -3,11 +3,16 @@
  * Handles text embeddings generation using Google's Gemini models
  */
 
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenAI } from "@google/genai";
 
 export interface EmbeddingConfig {
   model: string;
-  taskType?: 'RETRIEVAL_QUERY' | 'RETRIEVAL_DOCUMENT' | 'SEMANTIC_SIMILARITY' | 'CLASSIFICATION' | 'CLUSTERING';
+  taskType?:
+    | "RETRIEVAL_QUERY"
+    | "RETRIEVAL_DOCUMENT"
+    | "SEMANTIC_SIMILARITY"
+    | "CLASSIFICATION"
+    | "CLUSTERING";
   title?: string;
   outputDimensionality?: number;
 }
@@ -26,10 +31,10 @@ export interface BatchEmbeddingResult {
 }
 
 export class GoogleEmbeddingService {
-  private genAI: GoogleGenerativeAI | null = null;
+  private genAI: GoogleGenAI | null = null;
   private defaultConfig: EmbeddingConfig = {
-    model: 'text-embedding-004', // Latest stable embedding model
-    taskType: 'RETRIEVAL_DOCUMENT'
+    model: "text-embedding-004", // Latest stable embedding model
+    taskType: "RETRIEVAL_DOCUMENT",
   };
 
   constructor(apiKey?: string) {
@@ -43,10 +48,10 @@ export class GoogleEmbeddingService {
    */
   initialize(apiKey: string): boolean {
     try {
-      this.genAI = new GoogleGenerativeAI({ apiKey });
+      this.genAI = new GoogleGenAI({ apiKey });
       return true;
     } catch (error) {
-      console.error('Error initializing Google AI:', error);
+      console.error("Error initializing Google AI:", error);
       return false;
     }
   }
@@ -62,37 +67,44 @@ export class GoogleEmbeddingService {
    * Generate embedding for a single text
    */
   async generateEmbedding(
-    text: string, 
+    text: string,
     config?: Partial<EmbeddingConfig>
   ): Promise<EmbeddingResult> {
     if (!this.isInitialized()) {
-      throw new Error('Embedding service not initialized. Please set API key first.');
+      throw new Error(
+        "Embedding service not initialized. Please set API key first."
+      );
     }
 
     const embeddingConfig = { ...this.defaultConfig, ...config };
 
     try {
-      const model = this.genAI!.getGenerativeModel({ 
-        model: embeddingConfig.model 
+      // Using embedContent method from Google GenAI SDK
+      const result = await this.genAI!.models.embedContent({
+        model: embeddingConfig.model,
+        contents: text,
+        config: {
+          outputDimensionality: embeddingConfig.outputDimensionality,
+        },
       });
 
-      // Using embedContent method from @google/genai SDK
-      const result = await model.embedContent(text);
-      
-      if (!result.embedding) {
-        throw new Error('Invalid embedding response');
+      if (!result.embeddings || result.embeddings.length === 0) {
+        throw new Error("Invalid embedding response");
       }
 
       return {
-        embedding: result.embedding,
+        embedding: result.embeddings[0].values || [],
         text: text,
         model: embeddingConfig.model,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
-
     } catch (error) {
-      console.error('Error generating embedding:', error);
-      throw new Error(`Failed to generate embedding: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Error generating embedding:", error);
+      throw new Error(
+        `Failed to generate embedding: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   }
 
@@ -104,7 +116,9 @@ export class GoogleEmbeddingService {
     config?: Partial<EmbeddingConfig>
   ): Promise<BatchEmbeddingResult> {
     if (!this.isInitialized()) {
-      throw new Error('Embedding service not initialized. Please set API key first.');
+      throw new Error(
+        "Embedding service not initialized. Please set API key first."
+      );
     }
 
     const embeddings: EmbeddingResult[] = [];
@@ -113,17 +127,19 @@ export class GoogleEmbeddingService {
 
     // Process in batches to avoid rate limits
     const batchSize = 10;
-    
+
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize);
-      
+
       const batchPromises = batch.map(async (text, index) => {
         try {
           const embedding = await this.generateEmbedding(text, config);
           embeddings.push(embedding);
           totalProcessed++;
         } catch (error) {
-          const errorMsg = `Error processing text ${i + index}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          const errorMsg = `Error processing text ${i + index}: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`;
           console.error(errorMsg);
           errors.push(errorMsg);
         }
@@ -133,23 +149,26 @@ export class GoogleEmbeddingService {
 
       // Add delay between batches to respect rate limits
       if (i + batchSize < texts.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // 1 second delay
       }
     }
 
     return {
       embeddings,
       totalProcessed,
-      errors
+      errors,
     };
   }
 
   /**
    * Calculate cosine similarity between two embeddings
    */
-  calculateCosineSimilarity(embedding1: number[], embedding2: number[]): number {
+  calculateCosineSimilarity(
+    embedding1: number[],
+    embedding2: number[]
+  ): number {
     if (embedding1.length !== embedding2.length) {
-      throw new Error('Embeddings must have the same dimensionality');
+      throw new Error("Embeddings must have the same dimensionality");
     }
 
     let dotProduct = 0;
@@ -175,13 +194,16 @@ export class GoogleEmbeddingService {
     topK: number = 5,
     threshold: number = 0.7
   ): Array<EmbeddingResult & { similarity: number }> {
-    const similarities = embeddings.map(result => ({
+    const similarities = embeddings.map((result) => ({
       ...result,
-      similarity: this.calculateCosineSimilarity(queryEmbedding, result.embedding)
+      similarity: this.calculateCosineSimilarity(
+        queryEmbedding,
+        result.embedding
+      ),
     }));
 
     return similarities
-      .filter(result => result.similarity >= threshold)
+      .filter((result) => result.similarity >= threshold)
       .sort((a, b) => b.similarity - a.similarity)
       .slice(0, topK);
   }
@@ -191,21 +213,23 @@ export class GoogleEmbeddingService {
    */
   async generateDocumentEmbeddings(
     content: string,
-    documentType: 'pdf' | 'doc' | 'txt',
+    documentType: "pdf" | "doc" | "txt",
     metadata?: { title?: string; filename?: string }
   ): Promise<BatchEmbeddingResult> {
     // Customize embedding generation based on document type
     const config: Partial<EmbeddingConfig> = {
-      taskType: 'RETRIEVAL_DOCUMENT',
-      title: metadata?.title || metadata?.filename
+      taskType: "RETRIEVAL_DOCUMENT",
+      title: metadata?.title || metadata?.filename,
     };
 
     // Split content into chunks appropriate for the document type
     const chunks = this.splitDocumentContent(content, documentType);
-    
+
     // Add document context to each chunk
     const contextualChunks = chunks.map((chunk, index) => {
-      const prefix = metadata?.filename ? `Document: ${metadata.filename}\n` : '';
+      const prefix = metadata?.filename
+        ? `Document: ${metadata.filename}\n`
+        : "";
       const chunkInfo = `Part ${index + 1}/${chunks.length}\n`;
       return `${prefix}${chunkInfo}${chunk}`;
     });
@@ -216,34 +240,41 @@ export class GoogleEmbeddingService {
   /**
    * Split document content into appropriate chunks based on type
    */
-  private splitDocumentContent(content: string, documentType: 'pdf' | 'doc' | 'txt'): string[] {
+  private splitDocumentContent(
+    content: string,
+    documentType: "pdf" | "doc" | "txt"
+  ): string[] {
     const maxChunkSize = 1000; // characters
-    const overlapSize = 200;   // characters
+    const overlapSize = 200; // characters
 
     // Different splitting strategies for different document types
     let chunks: string[] = [];
 
     switch (documentType) {
-      case 'pdf':
+      case "pdf":
         // PDFs often have page breaks and sections
         chunks = this.splitByPages(content, maxChunkSize, overlapSize);
         break;
-      
-      case 'doc':
+
+      case "doc":
         // DOC files often have paragraphs and sections
         chunks = this.splitByParagraphs(content, maxChunkSize, overlapSize);
         break;
-      
-      case 'txt':
+
+      case "txt":
         // Plain text - simple sentence-based splitting
         chunks = this.splitBySentences(content, maxChunkSize, overlapSize);
         break;
     }
 
-    return chunks.filter(chunk => chunk.trim().length > 50); // Filter out very short chunks
+    return chunks.filter((chunk) => chunk.trim().length > 50); // Filter out very short chunks
   }
 
-  private splitByPages(content: string, maxSize: number, overlap: number): string[] {
+  private splitByPages(
+    content: string,
+    maxSize: number,
+    overlap: number
+  ): string[] {
     // Look for page breaks or use regular chunking
     const pageBreaks = content.split(/\n\s*\n\s*\n/); // Multiple line breaks
     if (pageBreaks.length > 1) {
@@ -252,33 +283,46 @@ export class GoogleEmbeddingService {
     return this.splitBySentences(content, maxSize, overlap);
   }
 
-  private splitByParagraphs(content: string, maxSize: number, overlap: number): string[] {
+  private splitByParagraphs(
+    content: string,
+    maxSize: number,
+    overlap: number
+  ): string[] {
     const paragraphs = content.split(/\n\s*\n/); // Double line breaks
     return this.chunkArrayBySize(paragraphs, maxSize, overlap);
   }
 
-  private splitBySentences(content: string, maxSize: number, overlap: number): string[] {
+  private splitBySentences(
+    content: string,
+    maxSize: number,
+    overlap: number
+  ): string[] {
     const sentences = content.split(/[.!?]+\s+/);
     return this.chunkArrayBySize(sentences, maxSize, overlap);
   }
 
-  private chunkArrayBySize(items: string[], maxSize: number, overlap: number): string[] {
+  private chunkArrayBySize(
+    items: string[],
+    maxSize: number,
+    overlap: number
+  ): string[] {
     const chunks: string[] = [];
-    let currentChunk = '';
-    let overlapText = '';
+    let currentChunk = "";
+    let overlapText = "";
 
     for (const item of items) {
-      const candidateChunk = overlapText + currentChunk + (currentChunk ? ' ' : '') + item;
-      
+      const candidateChunk =
+        overlapText + currentChunk + (currentChunk ? " " : "") + item;
+
       if (candidateChunk.length <= maxSize) {
-        currentChunk = candidateChunk.replace(overlapText, '');
+        currentChunk = candidateChunk.replace(overlapText, "");
       } else {
         if (currentChunk) {
           chunks.push(overlapText + currentChunk);
           // Create overlap from the end of current chunk
-          const words = currentChunk.split(' ');
+          const words = currentChunk.split(" ");
           const overlapWords = words.slice(-Math.floor(overlap / 6)); // Approximate words for overlap
-          overlapText = overlapWords.join(' ') + ' ';
+          overlapText = overlapWords.join(" ") + " ";
         }
         currentChunk = item;
       }

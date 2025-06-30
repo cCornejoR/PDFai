@@ -1,16 +1,16 @@
 // Utility functions for the application
-import { GoogleGenerativeAI } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
 // Gemini AI instance (will be initialized with API key)
-let genAI: GoogleGenerativeAI | null = null;
+let genAI: GoogleGenAI | null = null;
 
 // Initialize Gemini AI with API key
 export function initializeGeminiAI(apiKey: string): void {
-  genAI = new GoogleGenerativeAI({ apiKey });
+  genAI = new GoogleGenAI({ apiKey });
 }
 
 // Get Gemini AI instance
-export function getGeminiAI(): GoogleGenerativeAI | null {
+export function getGeminiAI(): GoogleGenAI | null {
   return genAI;
 }
 
@@ -33,16 +33,16 @@ export async function testGeminiConnection(apiKey: string): Promise<void> {
     console.log("🔍 Testing Gemini API connection...");
 
     // Initialize Gemini AI with the provided API key
-    const testGenAI = new GoogleGenerativeAI({ apiKey });
-    const model = testGenAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const testGenAI = new GoogleGenAI({ apiKey });
 
     // Test the API key by making a simple request
-    const result = await model.generateContent(
-      'Hello, this is a test message. Please respond with "API connection successful".'
-    );
+    const result = await testGenAI.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents:
+        'Hello, this is a test message. Please respond with "API connection successful".',
+    });
 
-    const response = await result.response;
-    const text = response.text();
+    const text = result.text;
 
     console.log("✅ API test successful:", text);
   } catch (error) {
@@ -63,12 +63,10 @@ export async function generateAIResponse(
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    let prompt = userMessage;
+    let contents = userMessage;
 
     if (pdfContext) {
-      prompt = `Based on the following PDF content, please answer the user's question:
+      contents = `Based on the following PDF content, please answer the user's question:
 
 PDF Content:
 ${pdfContext}
@@ -78,9 +76,12 @@ User Question: ${userMessage}
 Please provide a helpful and accurate response based on the PDF content. If the question cannot be answered from the PDF content, please let the user know.`;
     }
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    const result = await genAI.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: contents,
+    });
+
+    return result.text || "No response generated";
   } catch (error) {
     console.error("❌ Error generating AI response:", error);
     throw error;
