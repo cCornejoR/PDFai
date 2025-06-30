@@ -9,6 +9,7 @@ export interface PDFFile {
   starred: boolean;
   folderId?: string;
   thumbnail?: string;
+  documentId?: string; // Added for RAG service document ID
 }
 
 export interface Folder {

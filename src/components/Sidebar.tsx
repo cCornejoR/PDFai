@@ -13,6 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { storage, PDFFile, Folder as FolderType } from "../utils/storage";
+import { geminiService } from "../lib/geminiService";
 import CreateFolderModal from "./ui/CreateFolderModal";
 import DeleteConfirmModal from "./ui/DeleteConfirmModal";
 import {
@@ -72,14 +73,28 @@ export default function Sidebar({
       const result = await window.electronAPI.selectPdfFile();
       if (result.success && result.file) {
         // Add file without folderId so it goes to Recent Documents only
-        const newFile = storage.addFile({
+        const newFile: PDFFile = {
           name: result.file.name,
           path: result.file.path,
           size: result.file.size,
           lastModified: new Date(result.file.lastModified),
           starred: false,
           // Don't set folderId - let it be handled by Recent Documents
-        });
+        };
+
+        // Process the document for RAG
+        console.log(`Processing document for RAG: ${result.file.name}`);
+        const processResult = await geminiService.processDocumentForRAG(result.file);
+        if (processResult.success) {
+          newFile.documentId = processResult.documentId;
+          console.log(`✅ Document ${result.file.name} processed for RAG with ID: ${processResult.documentId}`);
+        } else {
+          console.error(`❌ Failed to process document for RAG: ${processResult.error}`);
+        }
+        const addedFile = storage.addFile(newFile);
+
+        // Automatically select and load the new file
+        handleFileSelect(addedFile);
 
         // Refresh data
         loadData();
@@ -97,6 +112,9 @@ export default function Sidebar({
   const handleFileSelect = async (file: PDFFile) => {
     setSelectedFile(file.id);
     storage.addToRecent(file.id);
+
+    // Set the current document ID for Gemini service
+    geminiService.setCurrentDocumentId(file.documentId || null);
 
     if (onFileSelect) {
       try {
