@@ -65,7 +65,9 @@ const App: React.FC = () => {
     // Implementar acciones del menú
     switch (action) {
       case "new":
-        alert("Nuevo PDF - funcionalidad próximamente");
+        // Clear current PDF selection
+        setSelectedPDF(null);
+        console.log("📄 PDF selection cleared");
         break;
       case "open":
         alert("Abrir PDF - funcionalidad próximamente");
@@ -74,7 +76,12 @@ const App: React.FC = () => {
         setSidebarVisible(!sidebarVisible);
         break;
       case "chat":
-        setChatVisible(!chatVisible);
+        // Only allow toggling chat when a PDF is selected
+        if (selectedPDF) {
+          setChatVisible(!chatVisible);
+        } else {
+          console.log("📱 Chat toggle disabled: No PDF selected");
+        }
         break;
       default:
         console.log("Acción no implementada:", action);
@@ -100,11 +107,21 @@ const App: React.FC = () => {
   };
 
   const [sidebarVisible, setSidebarVisible] = useState(true);
-  const [chatVisible, setChatVisible] = useState(true);
+  const [chatVisible, setChatVisible] = useState(false); // Start hidden
   const [selectedPDF, setSelectedPDF] = useState<
     (PDFFile & { data?: string }) | null
   >(null);
 
+  // Automatically show ChatPanel when a PDF is selected
+  useEffect(() => {
+    if (selectedPDF) {
+      setChatVisible(true);
+      console.log(`📱 ChatPanel activated for PDF: ${selectedPDF.name}`);
+    } else {
+      setChatVisible(false);
+      console.log(`📱 ChatPanel deactivated (no PDF selected)`);
+    }
+  }, [selectedPDF]);
 
   return (
     <div
@@ -140,6 +157,8 @@ const App: React.FC = () => {
         currentTheme={currentTheme}
         onThemeChange={handleThemeChange}
         onApiKeyConfig={handleApiKeyConfig}
+        hasPDFSelected={!!selectedPDF}
+        chatVisible={chatVisible}
       />
 
       {/* Layout principal */}
@@ -152,14 +171,43 @@ const App: React.FC = () => {
 
         {/* Área central */}
         <div className="flex-1 flex p-4">
-          <PDFViewer
-            fileUrl={selectedPDF?.data}
-            fileName={selectedPDF?.name}
-            onError={(error) => {
-              console.error("PDF Viewer Error:", error);
-              // You could show a toast notification here
-            }}
-          />
+          {selectedPDF ? (
+            <PDFViewer
+              fileUrl={selectedPDF?.data}
+              fileName={selectedPDF?.name}
+              onError={(error) => {
+                console.error("PDF Viewer Error:", error);
+                // You could show a toast notification here
+              }}
+            />
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center p-8 rounded-lg bg-dark-surface/10 backdrop-blur-sm border border-dark-blue-gray/20 shadow-lg"
+              >
+                <motion.img
+                  src="./public/PDFai-3D.png"
+                  alt="PDFai 3D Logo"
+                  className="mx-auto mb-6 w-48 h-48"
+                  animate={{
+                    y: [0, -10, 0],
+                    transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+                  }}
+                />
+                <h2 className="text-3xl font-bold text-dark-rose mb-3">
+                  Bienvenido a <span className="text-dark-coral">PDFai</span>
+                </h2>
+                <p className="text-dark-blue-gray text-lg mb-4">
+                  Tu asistente inteligente para interactuar con documentos PDF.
+                </p>
+                <p className="text-dark-blue-gray/80 text-md">
+                  Selecciona un PDF desde la barra lateral para comenzar a chatear y obtener análisis inteligentes.
+                </p>
+              </motion.div>
+            </div>
+          )}
         </div>
 
         {/* Chat Panel */}
