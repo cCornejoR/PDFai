@@ -23,6 +23,8 @@ interface TitleBarProps {
   currentTheme?: "light" | "dark" | "system";
   onThemeChange?: (theme: "light" | "dark" | "system") => void;
   onApiKeyConfig?: () => void;
+  hasPDFSelected?: boolean;
+  chatVisible?: boolean;
 }
 
 export default function TitleBar({
@@ -31,6 +33,8 @@ export default function TitleBar({
   currentTheme = "system",
   onThemeChange,
   onApiKeyConfig,
+  hasPDFSelected = false,
+  chatVisible = false,
 }: TitleBarProps) {
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const [showConfig, setShowConfig] = useState(false);
@@ -80,7 +84,12 @@ export default function TitleBar({
       label: "Vista",
       items: [
         { id: "sidebar", label: "Mostrar Sidebar", shortcut: `${cmdKey}B` },
-        { id: "chat", label: "Panel de Chat", shortcut: `${cmdKey}K` },
+        { 
+          id: "chat", 
+          label: hasPDFSelected ? (chatVisible ? "Ocultar Chat" : "Mostrar Chat") : "Panel de Chat (PDF requerido)", 
+          shortcut: `${cmdKey}K`,
+          disabled: !hasPDFSelected
+        },
       ],
     },
     {
@@ -206,7 +215,11 @@ export default function TitleBar({
             break;
           case "k":
             e.preventDefault();
-            onMenuAction?.("chat");
+            if (hasPDFSelected) {
+              onMenuAction?.("chat");
+            } else {
+              console.log("📱 Chat shortcut disabled: No PDF selected");
+            }
             break;
           case "/":
           case "?":
@@ -247,15 +260,13 @@ export default function TitleBar({
               <motion.button
                 whileHover={{
                   scale: 1.05,
-                  backgroundColor: "rgba(64, 65, 71, 0.8)",
-                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
                 }}
                 whileTap={{ scale: 0.95 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
                 onClick={() =>
                   setShowMenu(showMenu === menu.id ? null : menu.id)
                 }
-                className="px-3 py-1.5 text-sm font-medium text-dark-rose rounded-macos-sm transition-all duration-150 backdrop-blur-sm border border-transparent hover:border-dark-blue-gray/30"
+                className="px-3 py-1.5 text-sm font-medium text-dark-rose transition-all duration-150 border border-transparent hover:border-dark-blue-gray/30 hover:text-white"
               >
                 {menu.label}
               </motion.button>
@@ -295,12 +306,16 @@ export default function TitleBar({
                             ease: "easeOut",
                           }}
                           onClick={() => {
-                            if (item.id) {
+                            if (item.id && !("disabled" in item && item.disabled)) {
                               onMenuAction?.(item.id);
                               setShowMenu(null);
                             }
                           }}
-                          className="menu-dropdown-item w-full flex items-center justify-between px-4 py-2.5 text-sm text-dark-rose rounded-macos-sm mx-1"
+                          className={`menu-dropdown-item w-full flex items-center justify-between px-4 py-2.5 text-sm rounded-macos-sm mx-1 ${
+                            "disabled" in item && item.disabled 
+                              ? "text-dark-blue-gray/50 cursor-not-allowed" 
+                              : "text-dark-rose cursor-pointer hover:bg-dark-surface/30"
+                          }`}
                         >
                           <div className="flex items-center space-x-3">
                             {"icon" in item && item.icon && (
