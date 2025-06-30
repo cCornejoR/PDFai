@@ -23,7 +23,7 @@
 **PDFai** es una aplicación de escritorio multiplataforma construida con Electron y React que te permite interactuar con tus documentos PDF de una manera completamente nueva. Sube tus archivos, organízalos en carpetas y haz preguntas directamente a tus documentos gracias a la integración con la API de Gemini de Google.
 
 <p align="center">
-  <img src="./public/image.png" alt="PDFai Screenshot" width="100%"/>
+  <img src="./public/image.png" alt="PDFai Screenshot" width="50%"/>
 </p>
 
 ## ✨ Características Principales
@@ -73,7 +73,6 @@ Haz clic en las imágenes para ver los videos de demostración de las funcionali
     </td>
   </tr>
 </table>
-
 
 ## 🛠️ Tecnologías Utilizadas
 
