@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { storage, PDFFile, Folder as FolderType } from "../utils/storage";
 import { geminiService } from "../lib/geminiService";
+import { pdfParseService, PDFContent } from "../lib/pdfParseService";
 import CreateFolderModal from "./ui/CreateFolderModal";
 import DeleteConfirmModal from "./ui/DeleteConfirmModal";
 import {
@@ -24,8 +25,6 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-  DragOverlay,
-  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -39,7 +38,7 @@ import DroppableRoot from "./ui/DroppableRoot";
 interface SidebarProps {
   isVisible?: boolean;
   onToggle?: () => void;
-  onFileSelect?: (file: PDFFile) => void;
+  onFileSelect?: (file: (PDFFile & { data?: string }) | null) => void;
 }
 
 export default function Sidebar({
@@ -73,34 +72,25 @@ export default function Sidebar({
       const result = await window.electronAPI.selectPdfFile();
       if (result.success && result.file) {
         // Add file without folderId so it goes to Recent Documents only
-        const newFile: PDFFile = {
+        const newFile: Omit<PDFFile, "id"> = {
           name: result.file.name,
           path: result.file.path,
           size: result.file.size,
           lastModified: new Date(result.file.lastModified),
           starred: false,
-          // Don't set folderId - let it be handled by Recent Documents
         };
 
-        // Process the document for RAG
-        console.log(`Processing document for RAG: ${result.file.name}`);
-        const processResult = await geminiService.processDocumentForRAG(result.file);
-        if (processResult.success) {
-          newFile.documentId = processResult.documentId;
-          console.log(`✅ Document ${result.file.name} processed for RAG with ID: ${processResult.documentId}`);
-        } else {
-          console.error(`❌ Failed to process document for RAG: ${processResult.error}`);
-        }
         const addedFile = storage.addFile(newFile);
-
-        // Automatically select and load the new file
-        handleFileSelect(addedFile);
+        console.log(`📄 File added: ${result.file.name}`);
 
         // Refresh data
         loadData();
 
         // Automatically select and load the new file
-        handleFileSelect(newFile);
+        await handleFileSelect(addedFile);
+        
+        // Process document in background for AI features
+        processDocumentInBackground(addedFile, result.file.path);
       }
     } catch (error) {
       console.error("Failed to upload file:", error);
@@ -109,11 +99,63 @@ export default function Sidebar({
     }
   };
 
+  const processDocumentInBackground = async (file: PDFFile, filePath: string) => {
+    try {
+      console.log(`🔄 Processing document in background: ${file.name}`);
+      
+      // Extract PDF content for processing
+      const pdfDataResult = await window.electronAPI.readPdfFile(filePath);
+      if (pdfDataResult.success && pdfDataResult.data) {
+        // Convert base64 data to File object for RAG processing
+        const base64Data = pdfDataResult.data.split(",")[1];
+        const binaryString = window.atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+
+        const fileBlob = new Blob([bytes], { type: "application/pdf" });
+        const fileObject = new File([fileBlob], file.name, {
+          type: "application/pdf",
+          lastModified: file.lastModified.getTime(),
+        });
+
+        // Extract PDF content for analysis
+        const pdfParseResult = await pdfParseService.extractPDFContent(filePath);
+        if (pdfParseResult.success && pdfParseResult.content) {
+          // Process document for RAG
+          const processResult = await geminiService.processDocumentComplete(
+            fileObject,
+            pdfParseResult.content
+          );
+          
+          if (processResult.success) {
+            // Update file with document ID
+            const fileIndex = files.findIndex(f => f.id === file.id);
+            if (fileIndex !== -1) {
+              files[fileIndex].documentId = processResult.documentId;
+              storage.updateFile(file.id, { documentId: processResult.documentId });
+              loadData(); // Refresh to show updated state
+            }
+            
+            console.log(`✅ Document ${file.name} processed successfully:`);
+            console.log(`   - Document ID: ${processResult.documentId}`);
+            console.log(`   - RAG chunks: ${processResult.chunksCreated}`);
+          } else {
+            console.warn(`⚠️ Background processing failed: ${processResult.error}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`⚠️ Background processing error for ${file.name}:`, error);
+    }
+  };
+
   const handleFileSelect = async (file: PDFFile) => {
     setSelectedFile(file.id);
     storage.addToRecent(file.id);
 
-    // Set the current document ID for Gemini service
+    // Set the current document ID for Gemini service immediately
     geminiService.setCurrentDocumentId(file.documentId || null);
 
     if (onFileSelect) {
@@ -124,6 +166,13 @@ export default function Sidebar({
             ...file,
             data: result.data,
           } as any);
+          
+          // Log AI readiness status
+          if (file.documentId) {
+            console.log(`🤖 AI features ready for: ${file.name}`);
+          } else {
+            console.log(`⏳ AI features processing for: ${file.name}`);
+          }
         }
       } catch (error) {
         console.error("Failed to load PDF:", error);
@@ -196,6 +245,18 @@ export default function Sidebar({
     }
   };
 
+  const handleQuickAction = (actionId: string) => {
+    const folder = folders.find(f => f.id === actionId);
+    if (folder && !folder.expanded) {
+      toggleFolder(actionId);
+    }
+    // Scroll to the section
+    const element = document.getElementById(`folder-${actionId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
     const k = 1024;
@@ -204,16 +265,7 @@ export default function Sidebar({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const formatDate = (date: Date): string => {
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return "Today";
-    if (diffDays === 2) return "Yesterday";
-    if (diffDays <= 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  };
+  // Removed unused formatDate function
 
   const getFilesForFolder = (folderId: string): PDFFile[] => {
     return storage
@@ -326,14 +378,15 @@ export default function Sidebar({
       <div className="px-4 py-3 border-b border-dark-blue-gray/30">
         <div className="grid grid-cols-3 gap-2">
           {[
-            { icon: Clock, label: "Recientes", color: "text-blue-400" },
-            { icon: Star, label: "Favoritos", color: "text-yellow-400" },
-            { icon: Trash2, label: "Papelera", color: "text-red-400" },
-          ].map((action, index) => (
+            { icon: Clock, label: "Recientes", color: "text-blue-400", id: "recent" },
+            { icon: Star, label: "Favoritos", color: "text-yellow-400", id: "favorites" },
+            { icon: Trash2, label: "Papelera", color: "text-red-400", id: "trash" },
+          ].map((action) => (
             <motion.button
               key={action.label}
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => handleQuickAction(action.id)}
               className="flex flex-col items-center p-3 rounded-macos-md bg-dark-surface/30 hover:bg-dark-surface/60 transition-all duration-200 group"
             >
               <action.icon className={`w-5 h-5 ${action.color} mb-1`} />
@@ -352,10 +405,59 @@ export default function Sidebar({
         onDragEnd={handleDragEnd}
       >
         <div className="p-4 space-y-2">
-          {folders.map((folder) => {
+          {/* Built-in folders (Recent and Favorites) */}
+          {folders.filter(f => f.id === 'recent' || f.id === 'favorites').map((folder) => {
+            const folderFiles = getFilesForFolder(folder.id);
+            if (folderFiles.length === 0) return null;
+            
+            return (
+              <div key={folder.id} id={`folder-${folder.id}`}>
+                {/* Folder Header */}
+                <DroppableFolder
+                  folder={folder}
+                  fileCount={folderFiles.length}
+                  onToggle={toggleFolder}
+                />
+
+                {/* Files */}
+                <AnimatePresence>
+                  {folder.expanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="ml-4 space-y-1 overflow-hidden border-l-2 border-transparent"
+                    >
+                      <SortableContext
+                        items={folderFiles.map((file) => file.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {folderFiles.map((file, index) => (
+                          <SortableFile
+                            key={file.id}
+                            file={file}
+                            index={index}
+                            isSelected={selectedFile === file.id}
+                            onSelect={handleFileSelect}
+                            onToggleStar={toggleStar}
+                            onDelete={handleDeleteFile}
+                            onOpenLocation={handleOpenFileLocation}
+                          />
+                        ))}
+                      </SortableContext>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+
+          {/* User created folders */}
+          {folders.filter(f => f.id !== 'recent' && f.id !== 'favorites').map((folder) => {
             const folderFiles = getFilesForFolder(folder.id);
             return (
-              <div key={folder.id}>
+              <div key={folder.id} id={`folder-${folder.id}`}>
                 {/* Folder Header */}
                 <DroppableFolder
                   folder={folder}

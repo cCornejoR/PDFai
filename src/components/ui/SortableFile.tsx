@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { FileText, Star, ExternalLink, Trash2, Clock } from "lucide-react";
+import { FileText, Star, ExternalLink, Trash2, Clock, Bot, Loader } from "lucide-react";
 import { PDFFile } from "../../utils/storage";
 
 interface SortableFileProps {
@@ -85,19 +85,26 @@ export default function SortableFile({
       }}
     >
       <div className="flex items-start justify-between">
-        {/* Drag handle and file info - clickable area */}
-        <div
-          {...listeners}
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect(file);
-          }}
-          className="flex items-start space-x-3 flex-1 min-w-0 cursor-pointer"
-        >
-          <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+        {/* File info - clickable area (separated from drag handle) */}
+        <div className="flex items-start space-x-3 flex-1 min-w-0">
+          {/* Drag handle - separate from click area */}
+          <div
+            {...listeners}
+            className="w-8 h-8 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing"
+            title="Drag to move file"
+          >
             <FileText className="w-4 h-4 text-white" />
           </div>
-          <div className="flex-1 min-w-0">
+
+          {/* File info - clickable area */}
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              console.log(`🖱️ File clicked: ${file.name}`);
+              onSelect(file);
+            }}
+            className="flex-1 min-w-0 cursor-pointer hover:bg-dark-surface/20 rounded-md p-1 -m-1 transition-colors"
+          >
             <h4 className="text-sm font-medium text-dark-rose truncate group-hover:text-white transition-colors">
               {file.name}
             </h4>
@@ -109,6 +116,18 @@ export default function SortableFile({
                 <Clock className="w-3 h-3" />
                 <span>{formatDate(file.lastModified)}</span>
               </span>
+              {/* AI Status Indicator */}
+              {file.documentId ? (
+                <span className="text-xs text-green-400 flex items-center space-x-1" title="AI features ready">
+                  <Bot className="w-3 h-3" />
+                  <span>IA Lista</span>
+                </span>
+              ) : (
+                <span className="text-xs text-yellow-400 flex items-center space-x-1" title="Processing for AI features">
+                  <Loader className="w-3 h-3 animate-spin" />
+                  <span>Procesando</span>
+                </span>
+              )}
             </div>
           </div>
         </div>

@@ -349,6 +349,15 @@ class StorageManager {
       this.saveState();
     }
   }
+
+  public updateFile(fileId: string, updates: Partial<PDFFile>): boolean {
+    const fileIndex = this.appState.files.findIndex(f => f.id === fileId);
+    if (fileIndex === -1) return false;
+
+    Object.assign(this.appState.files[fileIndex], updates);
+    this.saveState();
+    return true;
+  }
 }
 
 export const storage = StorageManager.getInstance();
