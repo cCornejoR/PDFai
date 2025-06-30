@@ -91,12 +91,73 @@ export default function ChatPanel({
           if (result.success && result.content) {
             setPdfTextContent(result.content.text);
 
-            // Set PDF content in Gemini service for context
-            geminiService.setPDFContent(result.content);
-
-            console.log(
-              `✅ PDF text extracted: ${result.content.text.length} characters, ${result.content.pages} pages`
-            );
+            // Check if this is a new document that needs automatic analysis
+            // For new uploads, the document might have documentId but no previous chat history
+            const currentChatHistory = geminiService.getChatHistory();
+            const shouldGenerateAnalysis = currentChatHistory.length === 0; // No previous chat = new document
+            
+            if (shouldGenerateAnalysis) {
+              // Generate automatic analysis for new documents
+              console.log(`🔄 Generating automatic analysis for new document...`);
+              
+              // Check if Gemini service is initialized
+              if (!geminiService.isInitialized()) {
+                console.error("❌ Gemini service not initialized - cannot generate analysis");
+                const errorMessage: Message = {
+                  id: `error-${Date.now()}`,
+                  type: "assistant",
+                  content: "❌ El servicio de IA no está inicializado. Por favor configura tu API key de Google Gemini.",
+                  timestamp: new Date(),
+                };
+                setMessages([errorMessage]);
+                return;
+              }
+              
+              // Show loading message
+              const loadingMessage: Message = {
+                id: `loading-${Date.now()}`,
+                type: "assistant",
+                content: "🤖 Analizando el documento... Generando resumen automático y preguntas clave...",
+                timestamp: new Date(),
+                isTyping: true,
+              };
+              setMessages([loadingMessage]);
+              
+              console.log(`📋 Gemini service initialized: ${geminiService.isInitialized()}`);
+              console.log(`📄 PDF content length: ${result.content.text.length} characters`);
+              
+              const analysisResult = await geminiService.setPDFContent(result.content);
+              
+              if (analysisResult.success) {
+                console.log(
+                  `✅ PDF extracted and analyzed: ${result.content.text.length} characters, ${result.content.pages} pages`
+                );
+                
+                // Load chat history which now includes the automatic analysis
+                const chatHistory = geminiService.getChatHistory();
+                if (chatHistory.length > 0) {
+                  // Convert Gemini chat messages to local message format
+                  const convertedMessages: Message[] = chatHistory.map(msg => ({
+                    id: `gemini-${msg.timestamp.getTime()}`,
+                    type: msg.role === 'user' ? 'user' : 'assistant',
+                    content: msg.content,
+                    timestamp: msg.timestamp,
+                  }));
+                  
+                  // Update messages to include the automatic analysis
+                  setMessages(convertedMessages);
+                }
+              } else {
+                console.error("❌ Error generating automatic analysis:", analysisResult.error);
+              }
+            } else {
+              // For existing documents, just set the content without generating new analysis
+              console.log(`📄 Loading existing document: ${result.content.text.length} characters, ${result.content.pages} pages`);
+              await geminiService.setPDFContentOnly(result.content, selectedPDF.documentId);
+              
+              // Clear chat for new document selection (optional)
+              setMessages([]);
+            }
           } else {
             console.error("❌ Error extracting PDF text:", result.error);
             setPdfTextContent(null);
@@ -106,8 +167,12 @@ export default function ChatPanel({
           setPdfTextContent(null);
         }
       } else {
+        // Clear everything when no PDF is selected
         setPdfTextContent(null);
+        setMessages([]); // Clear chat messages
         geminiService.clearPDFContent();
+        geminiService.clearChatHistory();
+        console.log("🧹 Chat and PDF content cleared");
       }
     };
 
