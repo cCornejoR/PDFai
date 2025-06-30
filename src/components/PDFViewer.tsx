@@ -152,7 +152,7 @@ export default function PDFViewer({
 
       <div className="flex-1 relative">
         {pdfData && (
-          <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.0.279/build/pdf.worker.min.js">
+          <Worker workerUrl="/pdf.worker.min.js">
             <div className="h-full pdf-viewer-container">
               <Viewer
                 fileUrl={pdfData}
