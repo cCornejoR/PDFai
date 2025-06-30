@@ -1,124 +1,122 @@
-# PDFai - Aplicación Electron + React
+<p align="center">
+  <img src="./public/PDFai-3D.png" alt="PDFai 3D Logo" width="250"/>
+</p>
 
-¡Bienvenido a tu nueva aplicación Electron con React! Esta aplicación combina la potencia de Electron para crear aplicaciones de escritorio multiplataforma con la flexibilidad de React para crear interfaces de usuario modernas.
+<h1 align="center">PDFai</h1>
 
-## 🚀 Características
+<p align="center">
+  <strong>Chatea con tus documentos PDF utilizando el poder de la IA de Gemini.</strong>
+</p>
 
-- ⚡ **Electron**: Aplicación de escritorio multiplataforma
-- ⚛️ **React**: Interfaz de usuario moderna y reactiva
-- 🔧 **TypeScript**: Tipado estático para mayor robustez
-- 📦 **Webpack**: Bundling y hot reload
-- 🎨 **CSS Moderno**: Estilos modernos con gradientes y animaciones
+<p align="center">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000" />
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-green.svg" />
+  <a href="https://github.com/cCornejoR/PDFai/graphs/contributors" alt="Contributors">
+    <img src="https://img.shields.io/github/contributors/cCornejoR/PDFai" />
+  </a>
+</p>
 
-## 📋 Requisitos Previos
+---
 
-- Node.js (versión 16 o superior)
-- npm o yarn
+## 🚀 Introducción
 
-## 🛠️ Instalación
+**PDFai** es una aplicación de escritorio multiplataforma construida con Electron y React que te permite interactuar con tus documentos PDF de una manera completamente nueva. Sube tus archivos, organízalos en carpetas y haz preguntas directamente a tus documentos gracias a la integración con la API de Gemini de Google.
 
-Las dependencias ya están instaladas, pero si necesitas reinstalar:
+<p align="center">
+  <img src="./public/image.png" alt="PDFai Screenshot" width="100%"/>
+</p>
 
-```bash
-npm install
-```
+## ✨ Características Principales
 
-## 🎯 Comandos Disponibles
+- **💬 Chat Interactivo con IA**: Haz preguntas en lenguaje natural sobre el contenido de tus PDFs.
+- **📂 Organización de Archivos**: Gestiona tus documentos con un sistema de arrastrar y soltar para archivos y carpetas.
+- **👁️ Visualizador de PDF Integrado**: Lee tus documentos directamente en la aplicación con un visor de PDF completo.
+- **🧠 RAG Avanzado**: Utiliza un sistema de Retrieval-Augmented Generation para obtener respuestas precisas y contextualizadas.
+- **🔒 Gestión Segura de API Key**: Almacena tu API Key de Gemini de forma segura en tu equipo.
+- **🎨 Interfaz Moderna**: Una interfaz de usuario limpia y moderna construida con React y Tailwind CSS.
 
-### Desarrollo
+## 🎬 Demostración en Video
 
-```bash
-npm start
-```
+Haz clic en las imágenes para ver los videos de demostración de las funcionalidades clave de PDFai.
 
-Inicia la aplicación en modo desarrollo con hot reload.
+<table width="100%">
+  <tr>
+    <td align="center">
+      <a href="./public/videos/V1.mp4" title="Click to watch: Feature 1">
+        <img src="./public/image.png" width="200" alt="Video 1 Thumbnail">
+      </a>
+      <br>
+      <strong>Carga y Visualización</strong>
+    </td>
+    <td align="center">
+      <a href="./public/videos/V2.mp4" title="Click to watch: Feature 2">
+        <img src="./public/image.png" width="200" alt="Video 2 Thumbnail">
+      </a>
+      <br>
+      <strong>Chat con Documentos</strong>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="./public/videos/V3.mp4" title="Click to watch: Feature 3">
+        <img src="./public/image.png" width="200" alt="Video 3 Thumbnail">
+      </a>
+      <br>
+      <strong>Organización de Archivos</strong>
+    </td>
+    <td align="center">
+      <a href="./public/videos/V4.mp4" title="Click to watch: Feature 4">
+        <img src="./public/image.png" width="200" alt="Video 4 Thumbnail">
+      </a>
+      <br>
+      <strong>Gestión de API Key</strong>
+    </td>
+  </tr>
+</table>
 
-### Construcción
 
-```bash
-npm run package
-```
+## 🛠️ Tecnologías Utilizadas
 
-Genera la aplicación empaquetada para distribución.
+- **Framework**: Electron, React
+- **Lenguaje**: TypeScript
+- **Estilos**: Tailwind CSS
+- **IA Generativa**: Google Gemini
+- **Gestión de Archivos**: dnd-kit
+- **Visualización de PDF**: react-pdf-viewer
 
-### Crear Instaladores
+## 🚀 Cómo Empezar
 
-```bash
-npm run make
-```
+Sigue estos pasos para ejecutar el proyecto en tu máquina local.
 
-Crea instaladores para diferentes plataformas.
+1.  **Clona el repositorio:**
+    ```bash
+    git clone https://github.com/cCornejoR/PDFai.git
+    ```
+2.  **Navega al directorio del proyecto:**
+    ```bash
+    cd PDFai
+    ```
+3.  **Instala las dependencias:**
+    ```bash
+    npm install
+    ```
+4.  **Inicia la aplicación en modo de desarrollo:**
+    ```bash
+    npm start
+    ```
 
-### Linting
+## 🤝 Contribuciones
 
-```bash
-npm run lint
-```
+¡Las contribuciones son bienvenidas! Si deseas contribuir, por favor revisa nuestra guía de commits para mantener un historial limpio y consistente.
 
-Ejecuta ESLint para verificar la calidad del código.
+- **[Guía de Commits](./COMMIT_GUIDELINES.md)**
 
-## 📁 Estructura del Proyecto
+## 📄 Licencia
 
-```
-PDFai-electron/
-├── src/
-│   ├── index.html          # Plantilla HTML principal
-│   ├── index.ts            # Proceso principal de Electron
-│   ├── renderer.tsx        # Punto de entrada del renderizador React
-│   ├── App.tsx             # Componente principal de React
-│   ├── index.css           # Estilos principales
-│   └── preload.ts          # Script de preload
-├── webpack.*.ts            # Configuraciones de Webpack
-├── forge.config.ts         # Configuración de Electron Forge
-├── tsconfig.json           # Configuración de TypeScript
-└── package.json            # Dependencias y scripts
-```
+Este proyecto está bajo la Licencia MIT. Consulta el archivo `LICENSE` para más detalles.
 
-## 🎨 Personalización
+---
 
-### Agregar Nuevos Componentes React
-
-1. Crea nuevos archivos `.tsx` en el directorio `src/`
-2. Importa y usa los componentes en `App.tsx`
-
-### Modificar Estilos
-
-- Edita `src/index.css` para cambiar los estilos globales
-- Agrega nuevos archivos CSS y impórtalos en tus componentes
-
-### Configurar Electron
-
-- Modifica `src/index.ts` para cambiar la configuración de la ventana principal
-- Ajusta `forge.config.ts` para personalizar la construcción y empaquetado
-
-## 🔧 Desarrollo de Funcionalidades PDF
-
-Para implementar las funcionalidades de procesamiento de PDF, considera usar:
-
-- **pdf-lib**: Para manipulación de PDFs
-- **pdf2pic**: Para convertir PDFs a imágenes
-- **pdf-parse**: Para extraer texto de PDFs
-
-Ejemplo de instalación:
-
-```bash
-npm install pdf-lib pdf2pic pdf-parse
-npm install --save-dev @types/pdf-parse
-```
-
-## 🌟 Próximos Pasos
-
-1. **Implementar funcionalidades de PDF**: Agregar capacidades de lectura y procesamiento
-2. **Integrar IA**: Conectar con APIs de inteligencia artificial
-3. **Mejorar UI/UX**: Expandir la interfaz de usuario
-4. **Agregar pruebas**: Implementar testing con Jest y React Testing Library
-5. **Configurar CI/CD**: Automatizar la construcción y distribución
-
-## 📝 Notas
-
-- La aplicación usa React 18 con la nueva API `createRoot`
-- TypeScript está configurado con JSX support
-- Webpack está configurado para hot reload durante el desarrollo
-- Los estilos incluyen efectos modernos como backdrop-filter y gradientes
-
-¡Disfruta desarrollando tu aplicación PDFai! 🎉
+<p align="center">
+  Hecho con ❤️ por el equipo de PDFai
+</p>
