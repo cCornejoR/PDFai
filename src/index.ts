@@ -55,8 +55,10 @@ const createWindow = (): void => {
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
-  // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // Open the DevTools only during development.
+  if (process.env.NODE_ENV !== "production") {
+    mainWindow.webContents.openDevTools();
+  }
 
   // IPC handlers para controles de ventana
   ipcMain.handle("window-minimize", () => {
