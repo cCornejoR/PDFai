@@ -104,6 +104,22 @@ Sigue estos pasos para ejecutar el proyecto en tu máquina local.
     npm start
     ```
 
+## 🧹 Linting del Código
+
+Para mantener un estilo de código consistente se utiliza **ESLint**. Primero instala las dependencias:
+
+```bash
+npm install
+```
+
+Luego ejecuta el lint:
+
+```bash
+npm run lint
+```
+
+ESLint usa la configuración plana definida en `eslint.config.js`.
+
 ## 🤝 Contribuciones
 
 ¡Las contribuciones son bienvenidas! Si deseas contribuir, por favor revisa nuestra guía de commits para mantener un historial limpio y consistente.
