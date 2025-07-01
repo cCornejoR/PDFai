@@ -3,6 +3,7 @@
   "productName": "PDFai",
   "version": "1.0.0",
   "description": "Chatea con tus documentos PDF",
+  "type": "module",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
