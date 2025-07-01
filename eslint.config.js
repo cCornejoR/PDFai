@@ -23,7 +23,6 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       ...importPlugin.configs.recommended.rules,
-      ...(importPlugin.configs.electron?.rules || {}),
       ...(importPlugin.configs.typescript?.rules || {}),
     },
   },
