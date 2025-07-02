@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(rm:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 60s npm run start)",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm start)",
+      "Bash(go:*)",
+      "Bash(wails:*)",
+      "Bash(wget:*)",
+      "Bash(sudo rm:*)",
+      "Bash(sudo tar:*)",
+      "Bash(curl:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(refreshenv)",
+      "Bash(cmd.exe:*)",
+      "WebFetch(domain:wails.io)",
+      "Bash(node:*)",
+      "Bash(npm --version)",
+      "Bash(./run-app.bat)",
+      "Bash(export PATH=\"/c/Program Files/Go/bin:$PATH:/c/Users/$USER/go/bin\")",
+      "Bash(/c/Users/$USER/go/bin/wails.exe version)",
+      "Bash(echo $USER)",
+      "Bash(echo $USERNAME)",
+      "Bash(ls:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(mkdir:*)",
+      "Bash(rg:*)"
+    ],
+    "deny": []
+  }
+}
