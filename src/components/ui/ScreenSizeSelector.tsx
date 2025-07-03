@@ -72,7 +72,11 @@ export default function ScreenSizeSelector({
   const CurrentIcon = getIcon(currentSize);
 
   return (
-    <div ref={dropdownRef} className={`relative ${className}`}>
+    <div
+      ref={dropdownRef}
+      className={`relative ${className}`}
+      data-config-element="true"
+    >
       <h4
         className={`text-xs font-semibold mb-2 flex items-center space-x-2 transition-colors duration-300 ${
           isDark ? "text-white" : "text-gray-800"
@@ -82,6 +86,7 @@ export default function ScreenSizeSelector({
             ? "0 1px 3px rgba(0,0,0,0.5)"
             : "0 1px 2px rgba(255,255,255,0.8)",
         }}
+        data-config-element="true"
       >
         <Monitor className="w-3 h-3" />
         <span>Tamaño de Pantalla</span>
@@ -91,7 +96,11 @@ export default function ScreenSizeSelector({
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={e => {
+          e.stopPropagation();
+          setIsOpen(!isOpen);
+        }}
+        data-config-element="true"
         className={`
           w-full flex items-center justify-between p-2 rounded-macos-md transition-all duration-200
           ${
@@ -159,7 +168,10 @@ export default function ScreenSizeSelector({
             style={{
               backdropFilter: "blur(20px) saturate(150%)",
               WebkitBackdropFilter: "blur(20px) saturate(150%)",
+              zIndex: 10001, // Z-index alto para estar por encima del dropdown de configuración
             }}
+            data-config-element="true"
+            onClick={e => e.stopPropagation()}
           >
             <div className="p-1">
               {availableSizes.map((config, index) => {
@@ -171,7 +183,11 @@ export default function ScreenSizeSelector({
                     key={config.size}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => handleSizeChange(config.size)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      handleSizeChange(config.size);
+                    }}
+                    data-config-element="true"
                     className={`
                       w-full flex items-center space-x-2 p-2 rounded-macos-sm transition-all duration-150
                       ${

@@ -26,7 +26,7 @@ const MainApp: React.FC = () => {
   const [processedPdfs, setProcessedPdfs] = useState<ProcessedPdf[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<
-    (PDFFile & { data?: string }) | null
+    (PDFFile & { data?: string }) | ProcessedPdf | null
   >(null);
   const [isChatPanelVisible, setIsChatPanelVisible] = useState(false);
 
@@ -57,17 +57,32 @@ const MainApp: React.FC = () => {
 
         try {
           const result = await processPdf(file);
+          const updatedPdf = {
+            id,
+            name: file.name,
+            status: "ready" as const,
+            file,
+            pages: result.pages,
+          };
+
           setProcessedPdfs(prev =>
-            prev.map(p =>
-              p.id === id
-                ? {
-                    ...p,
-                    status: "ready",
-                    pages: result.pages,
-                  }
-                : p
-            )
+            prev.map(p => (p.id === id ? updatedPdf : p))
           );
+
+          // Auto-seleccionar el primer PDF procesado si no hay ninguno seleccionado
+          if (!selectedPdf && newPdfs.length === 1) {
+            console.log(
+              "📄 Auto-seleccionando PDF procesado:",
+              updatedPdf.name
+            );
+            setSelectedPdf(updatedPdf);
+            setAppState("WORKSPACE");
+
+            // Show chat panel if API key is available
+            if (apiKeyStatus?.hasKey) {
+              setIsChatPanelVisible(true);
+            }
+          }
         } catch (error) {
           console.error("Error processing PDF:", error);
           setProcessedPdfs(prev =>
@@ -124,7 +139,18 @@ const MainApp: React.FC = () => {
   const handlePdfSelect = (pdf: (PDFFile & { data?: string }) | null) => {
     if (!pdf) return;
 
-    setSelectedPdf(pdf);
+    // Buscar el ProcessedPdf correspondiente si existe
+    const processedPdf = processedPdfs.find(
+      p => p.name === pdf.name && p.status === "ready"
+    );
+
+    if (processedPdf) {
+      console.log("📄 Seleccionando ProcessedPdf:", processedPdf.name);
+      setSelectedPdf(processedPdf);
+    } else {
+      console.log("📄 Seleccionando PDFFile:", pdf.name);
+      setSelectedPdf(pdf);
+    }
 
     // Automatically transition from HOME to WORKSPACE when PDF is selected
     if (appState === "HOME") {

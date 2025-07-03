@@ -97,19 +97,40 @@ export default function Sidebar({
     loadData();
   }, []);
 
-  // Click outside to close dropdown
+  // Click outside to close dropdown - mejorado para evitar conflictos
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // Verificar si el click fue dentro del dropdown o sus elementos
       if (
         configDropdownRef.current &&
-        !configDropdownRef.current.contains(event.target as Node)
+        !configDropdownRef.current.contains(target)
       ) {
-        setShowConfigDropdown(false);
+        // Verificar que no sea un click en un elemento de tema o configuración
+        const isThemeButton = (target as Element)?.closest?.(
+          "[data-theme-button]"
+        );
+        const isConfigElement = (target as Element)?.closest?.(
+          "[data-config-element]"
+        );
+
+        if (!isThemeButton && !isConfigElement) {
+          setShowConfigDropdown(false);
+        }
       }
     };
 
     if (showConfigDropdown) {
-      document.addEventListener("mousedown", handleClickOutside);
+      // Usar un pequeño delay para evitar que se cierre inmediatamente
+      const timeoutId = setTimeout(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+      }, 100);
+
+      return () => {
+        clearTimeout(timeoutId);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
     }
 
     return () => {
@@ -425,28 +446,35 @@ export default function Sidebar({
       animate={{ x: isOpen ? 0 : -280, opacity: isOpen ? 1 : 0 }}
       exit={{ x: -280, opacity: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`fixed left-0 top-11 flex flex-col shadow-2xl transition-all duration-300 z-50 ${
+      className={`fixed left-0 top-11 flex flex-col shadow-2xl transition-all duration-300 z-50 rounded-r-macos-2xl overflow-hidden ${
         isOpen ? "pointer-events-auto" : "pointer-events-none"
-      } w-full sm:w-80 h-[calc(100vh-44px)] ${
-        isDark ? "bg-gradient-dark-secondary" : "bg-gradient-light-secondary"
-      }`}
+      } w-full sm:w-80 h-[calc(100vh-44px)]`}
       style={{
+        background: isDark
+          ? "linear-gradient(135deg, rgba(30, 31, 35, 0.95) 0%, rgba(44, 44, 46, 0.9) 50%, rgba(58, 58, 60, 0.85) 100%)"
+          : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 247, 0.9) 50%, rgba(235, 235, 237, 0.85) 100%)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
         boxShadow: isDark
-          ? "0 8px 32px rgba(0,0,0,0.4)"
-          : "0 8px 32px rgba(0,0,0,0.15)",
-        borderRight: isDark
-          ? "1px solid rgba(255,255,255,0.1)"
+          ? "0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)"
+          : "0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.8)",
+        border: isDark
+          ? "1px solid rgba(255,255,255,0.15)"
           : "1px solid rgba(0,0,0,0.1)",
+        borderLeft: "none",
       }}
     >
       {/* Header */}
       <div
         title="Documentos"
-        className="p-4 transition-colors duration-300"
+        className="p-4 transition-colors duration-300 rounded-tr-macos-2xl"
         style={{
           borderBottom: isDark
             ? "1px solid rgba(124,130,141,0.3)"
             : "1px solid rgba(255,255,255,0.3)",
+          background: isDark
+            ? "linear-gradient(135deg, rgba(44, 44, 46, 0.8) 0%, rgba(58, 58, 60, 0.6) 100%)"
+            : "linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 245, 247, 0.6) 100%)",
         }}
       >
         <div className="flex items-center justify-between mb-4">
@@ -596,22 +624,22 @@ export default function Sidebar({
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleQuickAction(action.id)}
-              className={`flex flex-col items-center p-3 rounded-macos-md transition-all duration-200 group ${
-                isDark
-                  ? "bg-dark-surface/30 hover:bg-dark-surface/60"
-                  : "hover:bg-white/40"
+              className={`flex flex-col items-center p-3 rounded-macos-lg transition-all duration-200 group ${
+                isDark ? "hover:bg-dark-surface/60" : "hover:bg-white/60"
               }`}
-              style={
-                isDark
-                  ? {}
-                  : {
-                      backgroundColor: "rgba(255,255,255,0.25)",
-                      backdropFilter: "blur(12px) saturate(150%)",
-                      WebkitBackdropFilter: "blur(12px) saturate(150%)",
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                    }
-              }
+              style={{
+                background: isDark
+                  ? "linear-gradient(135deg, rgba(44, 44, 46, 0.6) 0%, rgba(58, 58, 60, 0.4) 100%)"
+                  : "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(245,245,247,0.6) 100%)",
+                backdropFilter: "blur(12px) saturate(150%)",
+                WebkitBackdropFilter: "blur(12px) saturate(150%)",
+                border: isDark
+                  ? "1px solid rgba(255,255,255,0.15)"
+                  : "1px solid rgba(0,0,0,0.1)",
+                boxShadow: isDark
+                  ? "0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)"
+                  : "0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)",
+              }}
             >
               <action.icon className={`w-5 h-5 ${action.color} mb-1`} />
               <span
@@ -780,11 +808,16 @@ export default function Sidebar({
 
       {/* Footer */}
       <div
-        className={`p-4 space-y-3 transition-colors duration-300 ${
+        className={`p-4 space-y-3 transition-colors duration-300 rounded-br-macos-2xl ${
           isDark
             ? "border-t border-dark-blue-gray/30"
             : "border-t border-white/50"
         }`}
+        style={{
+          background: isDark
+            ? "linear-gradient(135deg, rgba(30, 31, 35, 0.8) 0%, rgba(44, 44, 46, 0.6) 100%)"
+            : "linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 245, 247, 0.6) 100%)",
+        }}
       >
         {/* Configuration and API Key */}
         <div className="space-y-2">
@@ -793,23 +826,45 @@ export default function Sidebar({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => setShowConfigDropdown(!showConfigDropdown)}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg transition-all duration-200 ${
-                isDark
-                  ? "bg-dark-surface/30 hover:bg-dark-surface/50 text-dark-blue-gray hover:text-dark-rose"
-                  : "text-gray-600 hover:text-gray-800 hover:bg-white/40"
+              onClick={e => {
+                e.stopPropagation();
+                console.log(`🔧 Toggle configuración: ${!showConfigDropdown}`);
+                setShowConfigDropdown(!showConfigDropdown);
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-macos-lg transition-all duration-200 ${
+                showConfigDropdown
+                  ? isDark
+                    ? "text-dark-rose bg-dark-surface/60"
+                    : "text-blue-600 bg-blue-50/60"
+                  : isDark
+                    ? "text-dark-blue-gray hover:text-dark-rose"
+                    : "text-gray-600 hover:text-gray-800"
               }`}
-              style={
-                isDark
-                  ? {}
-                  : {
-                      backgroundColor: "rgba(255,255,255,0.25)",
-                      backdropFilter: "blur(12px) saturate(150%)",
-                      WebkitBackdropFilter: "blur(12px) saturate(150%)",
-                      border: "1px solid rgba(255,255,255,0.3)",
-                      boxShadow: "0 4px 16px rgba(0,0,0,0.1)",
-                    }
-              }
+              style={{
+                background: showConfigDropdown
+                  ? isDark
+                    ? "linear-gradient(135deg, rgba(58, 58, 60, 0.8) 0%, rgba(72, 72, 74, 0.6) 100%)"
+                    : "linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.2) 100%)"
+                  : isDark
+                    ? "linear-gradient(135deg, rgba(44, 44, 46, 0.6) 0%, rgba(58, 58, 60, 0.4) 100%)"
+                    : "linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(245,245,247,0.6) 100%)",
+                backdropFilter: "blur(12px) saturate(150%)",
+                WebkitBackdropFilter: "blur(12px) saturate(150%)",
+                border: showConfigDropdown
+                  ? isDark
+                    ? "1px solid rgba(255,255,255,0.25)"
+                    : "1px solid rgba(59, 130, 246, 0.3)"
+                  : isDark
+                    ? "1px solid rgba(255,255,255,0.15)"
+                    : "1px solid rgba(0,0,0,0.1)",
+                boxShadow: showConfigDropdown
+                  ? isDark
+                    ? "0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.15)"
+                    : "0 4px 16px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255,255,255,0.8)"
+                  : isDark
+                    ? "0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)"
+                    : "0 4px 16px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8)",
+              }}
               title="Configuración"
             >
               <div className="flex items-center space-x-2">
@@ -831,7 +886,7 @@ export default function Sidebar({
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.2, ease: "easeOut" }}
-                  className={`absolute bottom-full left-0 mb-2 w-full backdrop-blur-3xl rounded-macos-lg shadow-2xl p-3 z-dropdown transition-all duration-300 ${
+                  className={`absolute bottom-full left-0 mb-2 w-full backdrop-blur-3xl rounded-macos-lg shadow-2xl p-4 transition-all duration-300 ${
                     isDark
                       ? "border border-dark-blue-gray/50 bg-dark-bg/95"
                       : "border border-gray-300/50 bg-white/95"
@@ -839,7 +894,10 @@ export default function Sidebar({
                   style={{
                     backdropFilter: "blur(40px) saturate(180%)",
                     WebkitBackdropFilter: "blur(40px) saturate(180%)",
+                    zIndex: 10000, // Z-index muy alto para estar por encima de todo
                   }}
+                  data-config-element="true"
+                  onClick={e => e.stopPropagation()} // Prevenir que se cierre al hacer click dentro
                 >
                   {/* Theme Selection */}
                   <div className="space-y-4">
@@ -870,15 +928,21 @@ export default function Sidebar({
                               }}
                               whileTap={{ scale: 0.95 }}
                               transition={{ duration: 0.15, ease: "easeOut" }}
-                              onClick={() => onThemeChange?.(theme)}
-                              className={`flex flex-col items-center space-y-1 p-2 rounded-macos-md transition-all duration-200 cursor-pointer ${
+                              onClick={e => {
+                                e.stopPropagation();
+                                console.log(`🎨 Cambiando tema a: ${theme}`);
+                                onThemeChange?.(theme);
+                              }}
+                              data-theme-button="true"
+                              data-config-element="true"
+                              className={`flex flex-col items-center space-y-1 p-3 rounded-macos-md transition-all duration-200 cursor-pointer ${
                                 isSelected
                                   ? isDark
                                     ? "bg-dark-coral text-dark-rose shadow-lg border border-dark-coral/30"
-                                    : "bg-light-accent text-white shadow-lg border border-light-accent/30"
+                                    : "bg-blue-500 text-white shadow-lg border border-blue-500/30"
                                   : isDark
                                     ? "bg-dark-surface/50 text-dark-blue-gray border border-transparent hover:bg-dark-surface hover:text-white hover:border-dark-blue-gray/30"
-                                    : "text-gray-600 border border-transparent hover:text-gray-800 hover:border-gray-300/30"
+                                    : "bg-white/30 text-gray-600 border border-transparent hover:text-gray-800 hover:border-gray-300/30 hover:bg-white/50"
                               }`}
                               style={
                                 !isDark && !isSelected
@@ -903,7 +967,10 @@ export default function Sidebar({
                     </div>
 
                     {/* Screen Size Selection */}
-                    <div className="border-t border-gray-200/20 pt-3">
+                    <div
+                      className="border-t border-gray-200/20 pt-3"
+                      data-config-element="true"
+                    >
                       <ScreenSizeSelector />
                     </div>
                   </div>
@@ -973,20 +1040,6 @@ export default function Sidebar({
           </span>
         </div>
       </div>
-
-      {/* Overlay para cerrar dropdown */}
-      <AnimatePresence>
-        {showConfigDropdown && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-dropdown-overlay"
-            style={{ zIndex: 999998 }}
-            onClick={() => setShowConfigDropdown(false)}
-          />
-        )}
-      </AnimatePresence>
 
       {/* Create Folder Modal */}
       <CreateFolderModal
